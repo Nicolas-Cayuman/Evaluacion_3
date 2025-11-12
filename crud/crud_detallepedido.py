@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 from models import DetallePedido
 from typing import List
+from schemas import DetallePedido
 
 class DetallePedidoCRUD:
     # obtener detalles por pedido id
