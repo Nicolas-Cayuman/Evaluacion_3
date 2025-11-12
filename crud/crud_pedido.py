@@ -1,137 +1,39 @@
 #crud pedido
-from typing import List, Optional
-from django import db
 from sqlalchemy.orm import Session
-from models import Pedido, Menu, Cliente, DetallePedido
-from crud.crud_menuingrediente import get_ingredientes_by_menu
-from models import Ingrediente
-from sqlalchemy.exc import IntegrityError  
+from models import Pedido
+from schemas import PedidoCreate, PedidoUpdate
+from typing import List, Optional
 
-class PedidoCRUD:
-    # crear pedido
-    def create_pedido(self, db: Session, cliente_id: Optional[int], detalles: List[dict]) -> Pedido:
-        """[CREATE] Crea un nuevo pedido con sus detalles asociados."""
-        total_neto = 0.0
-        total_iva = 0.0
-        total_final = 0.0
+# Crear un nuevo pedido
+def create_pedido(db: Session, pedido: PedidoCreate) -> Pedido:
+    db_pedido = Pedido(**pedido.dict())
+    db.add(db_pedido)
+    db.commit()
+    db.refresh(db_pedido)
+    return db_pedido
+# Obtener un pedido por su ID
+def get_pedido(db: Session, pedido_id: int) -> Optional[Pedido]:
+    return db.query(Pedido).filter(Pedido.id == pedido_id).first()
 
-        pedido = Pedido(cliente_id=cliente_id)
+# Obtener todos los pedidos
+def get_pedidos(db: Session, skip: int = 0, limit: int = 100) -> List[Pedido]:
+    return db.query(Pedido).offset(skip).limit(limit).all()
 
-        db.add(pedido)
-        db.flush()  # Para obtener el ID del pedido antes de agregar detalles
-
-        for item in detalles:
-            menu = db.query(Menu).get(item['menu_id'])
-            if not menu:
-                raise ValueError(f"Menú con ID {item['menu_id']} no encontrado.")
-            
-            cantidad = item['cantidad']
-            precio_unitario = menu.precio
-            subtotal = precio_unitario * cantidad
-            iva = subtotal * 0.19  # Asumiendo un IVA del 19%
-            total = subtotal + iva
-
-            detalle_pedido = DetallePedido(
-                pedido_id=pedido.id,
-                nombre_menu=menu.nombre,
-                precio_unitario=precio_unitario,
-                cantidad=cantidad
-            )
-            db.add(detalle_pedido)
-
-            total_neto += subtotal
-            total_iva += iva
-            total_final += total
-
-        pedido.total_neto = total_neto
-        pedido.total_iva = total_iva
-        pedido.total_final = total_final
-
-        try:
-            db.commit()
-            db.refresh(pedido)
-            return pedido
-        except IntegrityError:
-            db.rollback()
-            raise ValueError("Error de integridad al crear el pedido.")
-        except Exception as e:
-            db.rollback()
-            raise e
-    # obtener tdoos los pedidos
-    def get_all_pedidos(self, db: Session) -> List[Pedido]:
-        """[READ] Obtiene todos los pedidos."""
-        return db.query(Pedido).order_by(Pedido.fecha.desc()).all()
-    
-    # obtener pedido por id
-    def get_pedido_by_id(self, db: Session, pedido_id: int) -> Optional[Pedido]:
-        """[READ] Obtiene un pedido por su ID."""
-        return db.query(Pedido).get(pedido_id)
-    
-    # eliminar pedido por id
-    def delete_pedido_by_id(self, db: Session, pedido_id: int) -> bool:
-        """[DELETE] Elimina un pedido por su ID."""
-        pedido = db.query(Pedido).get(pedido_id)
-        if not pedido:
-            return False
-        db.delete(pedido)
+# Actualizar un pedido existente
+def update_pedido(db: Session, pedido_id: int, pedido_update: PedidoUpdate) -> Optional[Pedido]:
+    db_pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
+    if db_pedido:
+        for key, value in pedido_update.dict(exclude_unset=True).items():
+            setattr(db_pedido, key, value)
         db.commit()
-        return True
-    
-    # actualizar pedido
-    def update_pedido(self, db: Session, pedido_id: int, cliente_id: Optional[int] = None, detalles: Optional[List[dict]] = None) -> Optional[Pedido]:
-        """[UPDATE] Actualiza los datos de un pedido."""
-        pedido = self.get_pedido_by_id(db, pedido_id)
-        if not pedido:
-            return None
-        
-        if cliente_id is not None:
-            pedido.cliente_id = cliente_id
-        
-        if detalles is not None:
-            # Eliminar detalles existentes
-            for detalle in pedido.detalles:
-                db.delete(detalle)
-            db.flush()
+        db.refresh(db_pedido)
+    return db_pedido
 
-            total_neto = 0.0
-            total_iva = 0.0
-            total_final = 0.0
-
-            for item in detalles:
-                menu = db.query(Menu).get(item['menu_id'])
-                if not menu:
-                    raise ValueError(f"Menú con ID {item['menu_id']} no encontrado.")
-                
-                cantidad = item['cantidad']
-                precio_unitario = menu.precio
-                subtotal = precio_unitario * cantidad
-                iva = subtotal * 0.19  # Asumiendo un IVA del 19%
-                total = subtotal + iva
-
-                detalle_pedido = DetallePedido(
-                    pedido_id=pedido.id,
-                    nombre_menu=menu.nombre,
-                    precio_unitario=precio_unitario,
-                    cantidad=cantidad
-                )
-                db.add(detalle_pedido)
-
-                total_neto += subtotal
-                total_iva += iva
-                total_final += total
-
-            pedido.total_neto = total_neto
-            pedido.total_iva = total_iva
-            pedido.total_final = total_final
-
-        try:
-            db.commit()
-            db.refresh(pedido)
-            return pedido
-        except IntegrityError:
-            db.rollback()
-            raise ValueError("Error de integridad al actualizar el pedido.")
-        except Exception as e:
-            db.rollback()
-            raise e
+# Eliminar un pedido por su ID
+def delete_pedido(db: Session, pedido_id: int) -> Optional[Pedido]:
+    db_pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
+    if db_pedido:
+        db.delete(db_pedido)
+        db.commit()
+    return db_pedido
         
