@@ -196,7 +196,7 @@ Cuando el usuario confirma:
 \end{frame}
 
 
-\begin{frame}{Uso de Funciones Lambda y Funcionales}
+\begin{frame}{Uso de Funciones Lambda, Map, Filter y Reduce}
     \textbf{Incluido en EV3:}
     \begin{itemize}
         \item \texttt{map} para poblar combobox.
@@ -208,13 +208,13 @@ Cuando el usuario confirma:
 
 \begin{frame}[fragile]{Ejemplos reales}
 \textbf{map + lambda:}
-\begin{minted}[fontsize=\scriptsize]{python}
+\begin{minted}
 etiquetas = list(map(lambda c: f"{c.id} - {c.nombre}",
                      clientes))
 \end{minted}
 
 \textbf{reduce:}
-\begin{minted}[fontsize=\scriptsize]{python}
+\begin{minted}
 total = reduce(lambda t, m: t + m.precio*m.cantidad,
                self.pedido.menus, 0)
 \end{minted}
