@@ -1,19 +1,26 @@
-# crud de clientes
+"""cliente_crud.py
 
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from models import Cliente
+Encapsula la lógica de acceso ORM para la tabla `clientes`. Mantiene la
+UI desacoplada de SQLAlchemy y centraliza validaciones comunes.
+"""
 from typing import List, Optional
 
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from models import Cliente
+
+
 class ClienteCRUD:
-    # crear cliente
-    def create_cliente(self, db: Session, nombre: str, correo: Optional[str] = None) -> Cliente:
-        """[CREATE] Crea un nuevo cliente."""
+    """CRUD básico que opera sobre el modelo `Cliente`."""
+
+    def create_cliente(self, db: Session, nombre: str, email: Optional[str] = None) -> Cliente:
+        """Crea un cliente validando nombre y unicidad de email."""
         nombre_limpio = nombre.strip().title()
         if not nombre_limpio:
             raise ValueError("El nombre del cliente no puede estar vacío.")
-        
-        cliente = Cliente(nombre=nombre_limpio, correo=correo)
+
+        cliente = Cliente(nombre=nombre_limpio, email=email)
         db.add(cliente)
         try:
             db.commit()
@@ -21,55 +28,53 @@ class ClienteCRUD:
             return cliente
         except IntegrityError:
             db.rollback()
-            raise ValueError(f"Error de integridad: Ya existe un cliente con el nombre '{nombre_limpio}'.")
-        except Exception as e:
-            db.rollback()
-            raise e
-    
-    # obtener cliente por id
+            raise ValueError("Error de integridad: Ya existe un cliente con ese email.")
+
     def get_cliente_by_id(self, db: Session, cliente_id: int) -> Optional[Cliente]:
-        """[READ] Obtiene un cliente por su ID."""
+        """Obtiene un cliente por ID utilizando el ORM."""
         return db.query(Cliente).get(cliente_id)
-    
-    # obtener todos los clientes
+
     def get_all_clientes(self, db: Session) -> List[Cliente]:
-        """[READ] Obtiene todos los clientes."""
+        """Lista todos los clientes ordenados alfabéticamente."""
         return db.query(Cliente).order_by(Cliente.nombre).all()
-    
-    # eliminar cliente por id
+
     def delete_cliente_by_id(self, db: Session, cliente_id: int) -> bool:
-        """[DELETE] Elimina un cliente por su ID."""
+        """Elimina un cliente siempre que no tenga pedidos asociados."""
         cliente = self.get_cliente_by_id(db, cliente_id)
         if not cliente:
             return False
+
+        if cliente.pedidos:
+            raise Exception("No se puede eliminar un cliente con pedidos asociados.")
+
         db.delete(cliente)
         db.commit()
         return True
-    
-    # actualizar cliente
-    def update_cliente(self, db: Session, cliente_id: int, nombre: Optional[str] = None, correo: Optional[str] = None) -> Optional[Cliente]:
-        """[UPDATE] Actualiza los datos de un cliente."""
+
+    def update_cliente(
+        self,
+        db: Session,
+        cliente_id: int,
+        nombre: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> Optional[Cliente]:
+        """Actualiza campos individuales del cliente."""
         cliente = self.get_cliente_by_id(db, cliente_id)
         if not cliente:
             return None
-        
+
         if nombre:
             nombre_limpio = nombre.strip().title()
             if not nombre_limpio:
                 raise ValueError("El nombre del cliente no puede estar vacío.")
             cliente.nombre = nombre_limpio
-        if correo is not None:
-            cliente.correo = correo
-        
+        if email is not None:
+            cliente.email = email
+
         try:
             db.commit()
             db.refresh(cliente)
             return cliente
         except IntegrityError:
             db.rollback()
-            raise ValueError(f"Error de integridad: Ya existe un cliente con el nombre '{cliente.nombre}'.")
-        except Exception as e:
-            db.rollback()
-            raise e
-    
-cliente_crud = ClienteCRUD()
+            raise ValueError("Error de integridad: Ya existe un cliente con ese email.")

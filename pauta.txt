@@ -1,0 +1,610 @@
+UNIVERSIDAD CAT´OLICA DE TEMUCO
+Facultad de Ingenier´ıa
+Ingenier´ıa Civil en Inform´atica
+Evaluaci´on 3
+Programaci´on II
+Sistema de Gesti´on de Clientes y Pedidos en un
+Restaurante
+Profesores: Guido Mellado
+Ayudantes: Fernando Vald´es y Joaqu´ın Cantero
+Evaluaci´on 3
+Informaci´on General
+Modalidad: Proyecto Grupal o Individual (M´ınimo 2 - M´aximo 5)
+Duraci´on: 2 semanas aproximadamente
+Objetivo: Mejorar el sistema de restaurante utilizando programaci´on orientada a
+objetos, manejo de bases de datos con ORM y dise˜no de interfaces gr´aficas en Python.
+Herramientas a Utilizar
+Lenguaje: Python 3.12 o superior
+Bibliotecas:
+• Interfaz gr´afica: customtkinter, tkinter
+• ORM y Base de Datos: SQLAlchemy
+• Gr´aficos: matplotlib
+Objetivos del Proyecto
+1. Aprender a programar usando programaci´on orientada a objetos. Crear clases y
+m´etodos para manejar las entidades del proyecto: Clientes, Pedidos, Ingredientes y
+Men´us
+2. Crear una base de datos y sincronizarla con el ORM.
+3. Hacer un CRUD (Crear, Leer, Actualizar, Eliminar) para cada entidad, usando el
+concepto de ORM con SQLAlchemy.
+4. Dise˜nar una interfaz gr´afica clara y f´acil de usar con customtkinter para que los
+usuarios puedan interactuar con el sistema sin dificultad.
+5. Usar expresiones lambda, map, filter y reduce.
+6. Crear gr´aficos sencillos con estad´ısticas basadas en los datos del sistema.
+7. Simular un proceso de compra para generar boletas y registrar pedidos.
+1 de 8
+Evaluaci´on 3
+Organizaci´on del Proyecto
+ORM_clientes/
+app.py
+# Archivo principal con la interfaz gr´afica y pesta~nas
+database.py
+# Configuraci´on de la base de datos y ORM
+models.py
+# Definici´on de los modelos ORM
+graficos.py
+# Funciones para generaci´on de gr´aficos
+main.py
+# Script para inicializar las tablas
+crud/
+cliente_crud.py
+pedido_crud.py
+ingrediente_crud.py
+menu_crud.py
+M´odulos a Implementar
+M´odulo
+Requisitos M´ınimos
+Base de Datos
+Crear una base de datos para la gesti´on del restaurante. El
+acceso a la base de datos se realizar´a ´unicamente mediante el
+ORM.
+Validar la conexi´on al motor de base de datos antes de
+realizar operaciones.
+Evitar la inserci´on de registros duplicados (claves pri-
+marias o campos ´unicos).
+Implementar rollback() autom´atico en caso de error
+en una transacci´on.
+Gesti´on
+de
+Ingre-
+dientes
+Carga de datos desde un archivo CSV, guardados en la
+base de datos. Controlar errores en la carga (columnas
+faltantes o formato incorrecto).
+Operaciones CRUD: Crear, Leer, Actualizar y Eliminar.
+Verificar que el nombre del ingrediente no est´e vac´ıo ni
+duplicado.
+Validar que el stock sea un n´umero positivo y mayor que
+cero.
+Al cargar stock desde CSV, debe actualizar la tabla de
+ingredientes y stock mediante el ORM.
+Uso de expresiones lambda, map, filter, reduce.
+2 de 8
+Evaluaci´on 3
+Gesti´on de Men´us
+Visualizaci´on y edici´on de los men´us disponibles.
+Creaci´on de nuevos men´us usando ingredientes existen-
+tes en la base de datos.
+Cada men´u debe tener nombre, descripci´on y lista de
+ingredientes con cantidades requeridas.
+Evitar ingredientes duplicados o con cantidades inv´ali-
+das (cero o negativas).
+Validar que los ingredientes seleccionados existan y ten-
+gan suficiente stock.
+Uso de operaciones lambda, map, filter, reduce.
+Ejemplo: Un “Completo” incluir´ıa 1 vienesa, 1 pan, ½
+palta y ½ tomate.
+Gesti´on de Clientes
+Visualizar todos los clientes registrados.
+Asociar clientes con pedidos y compras en la base de
+datos (ORM).
+Agregar pesta˜na de gesti´on de clientes.
+Operaciones CRUD: Crear, Leer, Actualizar y Eliminar.
+Validar formato y unicidad del correo electr´onico antes
+de guardar.
+Verificar que nombre y correo no est´en vac´ıos.
+Impedir eliminar clientes que tengan pedidos asociados
+en la base de datos.
+Uso de lambda, map, filter, reduce.
+3 de 8
+Evaluaci´on 3
+Panel de Compra
+Permitir seleccionar un cliente registrado.
+Agregar productos del men´u a una lista de compra.
+Generar boleta detallada y guardar el pedido en la base
+de datos.
+Validar que se haya seleccionado un cliente v´alido antes
+de procesar la compra.
+Verificar que se hayan agregado productos al pedido an-
+tes de generar la boleta.
+Controlar errores al guardar el pedido (por ejemplo,
+p´erdida de conexi´on o datos incompletos).
+Uso de lambda, map, filter, reduce.
+Gesti´on de Pedidos
+Mostrar todos los pedidos registrados y permitir su or-
+ganizaci´on.
+CRUD: Visualizar pedidos por cliente espec´ıfico.
+Cada pedido debe incluir descripci´on, total, fecha y can-
+tidad de men´us comprados.
+Asegurar que cada pedido tenga cliente, fecha y total
+v´alidos.
+Validar que los men´us asociados existan y est´en dispo-
+nibles.
+Manejar errores al intentar acceder o eliminar pedidos
+inexistentes.
+4 de 8
+Evaluaci´on 3
+Gr´aficos Estad´ısti-
+cos
+Permitir seleccionar tipo de gr´afico mediante un men´u
+desplegable.
+Tipos:
+• Ventas por fecha (diarias, semanales, mensuales,
+anuales).
+• Distribuci´on de men´us m´as comprados.
+• Uso de ingredientes en todos los pedidos realizados.
+Verificar que existan datos suficientes antes de generar
+gr´aficos.
+Manejar errores de formato en los datos (fechas, totales,
+etc.).
+Mostrar un mensaje de “No hay datos disponibles”
+cuando no existan registros para graficar.
+Nota: Estos son los elementos m´ınimos; si en el desarrollo puedes considerar agregar
+otra funcionalidad que sea necesaria para su correcto funcionamiento.
+Uso de Patr´on de dise˜no Factory Method (0.5 puntos
+extras)
+Los estudiantes pueden integrar el patr´on de dise˜no Factory Method en su proyecto
+para obtener un punto adicional en la nota final.
+Se debe incluir una explicaci´on clara del uso del patr´on en la presentaci´on final del
+proyecto, mostrando c´omo ayuda a mejorar la estructura y flexibilidad del c´odigo.
+5 de 8
+Evaluaci´on 3
+Entregables
+C´odigo
+Diagrama de clases y MER en PDF
+Presentaci´on del proyecto en latex igual que la entrega anterior
+Enlace al repositorio de GitHub
+Presentaci´on
+Presentaci´on de un PPT en grupos de 2-4 personas para el miercoles 19/11/2025
+(seccion 1) y 21/11/2025 (seccion 2). se subira un excel para agendar la presentacion
+debe contener t´ıtulo del problema, nombre de los integrantes, fecha y logo del de-
+partamento
+Presentaci´on de las mejoras del proyecto con respecto al mostrado en la ev2
+El diagrama de clases y MER con la soluci´on propuesta del problema.
+Presentaci´on de la soluci´on en c´odigo explicando el flujo principal de la soluci´on.
+manejo de ORM y funciones Lambda
+La presentaci´on de la interfaz visual del problema.
+La demostraci´on de la funcionalidad total del programa.
+Duraci´on: 10 minutos + 5 minutos de preguntas.
+NOTA: cualquiera de los items esperados, o reglas planteadas para la presentaci´on, pue-
+den tener que ser cambiados o ser mostrados al ayudante de forma diferida para su pun-
+tuaci´on el d´ıa de presentaci´on.
+6 de 8
+Evaluaci´on 3
+R´ubrica de Evaluaci´on
+Criterio
+Excelente
+(10)
+Bueno (8)
+Satisfactorio
+(5)
+Insuficiente
+(0)
+ORM
+y
+ba-
+se
+de
+datos
+(15 %)
+Define modelos
+y relaciones co-
+rrectas. Uso de
+ORM en todo
+el proyecto.
+Modelos
+y
+relaciones
+mayormente
+correctos;
+usa
+el ORM en la
+mayor´ıa de las
+consultas
+Uso superficial
+del ORM; rela-
+ciones
+No usa ORM o
+lo usa solo co-
+mo mapeo sin
+relaciones.
+Map, filter, re-
+duce (10 %)
+Implementa
+correctamente
+las operaciones
+MAP,
+filter,
+reduce
+para
+todas
+las
+en-
+tidades.
+Sin
+errores
+Implementa
+correctamente
+las
+opera-
+ciones
+MAP,
+filter,
+reduce
+con
+algunos
+errores.
+Implementa
+correctamente
+las operaciones
+MAP,
+filter,
+con
+errores
+evidentes
+o
+algunas partes
+faltantes.
+No presenta lo
+requerido
+de
+forma m´ınima
+Funcionalidad
+del
+CRUD
+(15 %)
+Implementa
+correctamente
+las operaciones
+CRUD
+para
+todas
+las
+en-
+tidades.
+Sin
+errores
+Implementa
+las operaciones
+CRUD
+con
+peque˜nos erro-
+res en algunas
+entidades.
+CRUD
+par-
+cialmente
+implementado,
+con
+errores
+evidentes
+o
+algunas partes
+faltantes.
+CRUD incom-
+pleto
+y
+con
+errores
+graves
+que
+afectan
+el
+funciona-
+miento
+del
+sistema.
+Interfaz Gr´afi-
+ca (5 %)
+GUI es clara,
+intuitiva y est´a
+bien dise˜nada.
+Cumple
+con
+todos
+los
+re-
+quisitos
+del
+proyecto.
+GUI est´a bien
+dise˜nada
+pe-
+ro
+presenta
+peque˜nas
+di-
+ficultades
+de
+navegaci´on
+o
+uso.
+GUI es funcio-
+nal, pero dif´ıcil
+de
+navegar
+o
+con dise˜no po-
+co intuitivo
+GUI incomple-
+ta o dif´ıcil de
+usar, afectando
+la
+experiencia
+del usuario.
+Uso de LaTeX
+(10 %)
+Documento
+perfectamente
+formateado
+en
+LaTeX:
+estructura
+clara,
+tablas,
+figuras y sec-
+ciones
+bien
+organizadas.
+Documento en
+LaTeX con pe-
+que˜nos errores
+de formato o
+estilo.
+Uso parcial de
+LaTeX o con
+errores eviden-
+tes de compila-
+ci´on o formato.
+Documento no
+presentado
+en
+LaTeX o con
+formato
+ilegi-
+ble.
+7 de 8
+Evaluaci´on 3
+Uso
+de
+GitHub (5 %)
+Repositorio
+en
+GitHub
+completo, bien
+estructurado
+y actualizado.
+Uso
+adecuado
+de ramas, Pull
+Requests
+y
+merge.
+Com-
+mits descripti-
+vos
+siguiendo
+buenas pr´acti-
+cas
+como
+Conventional
+Commits.
+Repositorio
+funcional
+con
+buena
+organi-
+zaci´on general,
+aunque
+algu-
+nos
+commits
+no son claros
+o
+faltan
+PR
+documentados.
+Repositorio
+incompleto
+o
+con
+historial
+de
+commits
+desordenado.
+No se eviden-
+cia
+un
+flujo
+de
+trabajo
+colaborativo
+claro.
+Sin repositorio
+funcional o con
+escasa eviden-
+cia de control
+de versiones o
+colaboraci´on.
+Gr´aficos
+Es-
+tad´ısticos
+(10 %)
+Los
+gr´aficos
+est´an
+bien
+implementa-
+dos, son claros
+y
+muestran
+correctamente
+las estad´ısticas
+solicitadas.
+Los
+gr´aficos
+est´an bien im-
+plementados,
+pero
+algunos
+carecen
+de
+claridad
+o
+de
+etiquetas
+adecuadas.
+Los
+gr´aficos
+est´an
+imple-
+mentados,
+pero muestran
+informaci´on
+incompleta
+o
+confusa.
+Gr´aficos
+ausentes
+o
+in´utilemtes
+implemen-
+tados,
+sin
+proporcionar
+informaci´on
+clara.
+Validaci´on
+de
+Errores (15 %)
+El
+sistema
+valida
+correc-
+tamente todas
+las
+entradas
+del
+usuario
+y
+maneja
+los
+errores
+mediante
+excepciones
+controladas,
+mostrando
+mensajes
+cla-
+ros y evitando
+interrupciones
+del programa.
+El sistema va-
+lida la mayor´ıa
+de
+las
+entra-
+das y maneja
+errores
+comu-
+nes,
+aunque
+algunos
+casos
+l´ımite
+pueden
+generar
+com-
+portamientos
+inesperados.
+La
+validaci´on
+de
+datos
+es
+parcial
+o
+in-
+consistente;
+algunos errores
+no se manejan
+correctamente
+y pueden pro-
+vocar
+cierres
+inesperados.
+No existe vali-
+daci´on de erro-
+res; el progra-
+ma falla ante
+entradas inco-
+rrectas o situa-
+ciones no pre-
+vistas.
+Proceso
+de
+Compra
+(15 %)
+Proceso
+de
+Compra Simu-
+lado
+Proceso
+de
+compra
+completo
+y
+f´acil de seguir.
+La generaci´on
+de
+boleta
+es
+clara
+y
+se
+guarda
+en
+la
+base de datos
+sin errores.
+Proceso
+de
+compra imple-
+mentado, pero
+con
+peque˜nas
+dificultades
+o
+errores
+menores.
+Proceso
+de
+compra incom-
+pleto o dif´ıcil
+de
+seguir.
+Generaci´on
+de boleta con
+errores.
+Proceso
+de
+compra
+au-
+sente
+o
+con
+errores
+graves
+que
+impiden
+su uso
+8 de 8

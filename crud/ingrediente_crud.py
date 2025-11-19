@@ -1,91 +1,131 @@
-# crud/ingrediente_crud.py
-from sqlalchemy.orm import Session
+"""ingrediente_crud.py
+
+Operaciones ORM para la tabla `ingredientes`, incluyendo carga masiva
+desde CSV para acelerar la inicialización del stock.
+"""
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from models import Ingrediente # Importa tu modelo 1.x
-from typing import List, Optional, Dict, Any
-import pandas as pd
+from sqlalchemy.orm import Session
+
+from models import Ingrediente
+
 
 class IngredienteCRUD:
-    
-    # create o update stock
-    def create_or_update_stock(self, db: Session, nombre: str, unidad: Optional[str], cantidad: float) -> Ingrediente:
-        """
-        [CREATE/UPDATE] Crea un ingrediente o incrementa la cantidad si ya existe.
-        """
-        nombre_limpio = nombre.strip().capitalize()
+    """CRUD de ingredientes con helpers adicionales para importaciones."""
+
+    def create_ingrediente(self, db: Session, nombre: str, unidad: Optional[str], cantidad_stock: float) -> Ingrediente:
+        """Inserta un ingrediente validando el nombre y la unicidad."""
+        nombre_limpio = nombre.strip().title()
         if not nombre_limpio:
-            raise ValueError("El nombre del ingrediente no puede estar vacío.") 
-        if cantidad <= 0:
-            raise ValueError("La cantidad de stock debe ser positiva y mayor que cero.") 
+            raise ValueError("El nombre del ingrediente no puede estar vacío.")
 
-        # Busca el ingrediente (sin importar mayúsculas/minúsculas)
-        ingrediente = self.get_ingrediente_by_name(db, nombre_limpio)
-        
-        if ingrediente:
-            # Si existe, actualiza el stock (UPDATE)
-            ingrediente.cantidad_stock += cantidad
-            ingrediente.unidad = unidad if unidad else ingrediente.unidad
-        else:
-            # Si no existe, lo crea (CREATE)
-            ingrediente = Ingrediente(nombre=nombre_limpio, unidad=unidad, cantidad_stock=cantidad)
-            db.add(ingrediente)
+        if cantidad_stock is None or float(cantidad_stock) <= 0:
+            raise ValueError("El stock debe ser un número mayor que cero.")
 
+        ingrediente = Ingrediente(nombre=nombre_limpio, unidad=unidad, cantidad_stock=cantidad_stock)
+        db.add(ingrediente)
         try:
-            db.commit() 
+            db.commit()
             db.refresh(ingrediente)
             return ingrediente
         except IntegrityError:
-            db.rollback() 
-            raise ValueError(f"Error de integridad: Ya existe un ingrediente con el nombre '{nombre_limpio}'.")
-        except Exception as e:
             db.rollback()
-            raise e
+            raise ValueError(f"Error de integridad: Ya existe un ingrediente con el nombre '{nombre_limpio}'.")
 
-    # leer por id
     def get_ingrediente_by_id(self, db: Session, ingrediente_id: int) -> Optional[Ingrediente]:
-        """[READ] Obtiene un ingrediente por su ID."""
+        """Obtiene un ingrediente por ID."""
         return db.query(Ingrediente).get(ingrediente_id)
 
-    # leer por nombre
-    def get_ingrediente_by_name(self, db: Session, nombre: str) -> Optional[Ingrediente]:
-        """[READ] Obtiene un ingrediente por su nombre (insensible a mayúsculas)."""
-        nombre_limpio = nombre.strip().lower()
-        return db.query(Ingrediente).filter(func.lower(Ingrediente.nombre) == nombre_limpio).first()
+    def get_ingrediente_by_nombre(self, db: Session, nombre: str) -> Optional[Ingrediente]:
+        """Busca por nombre ignorando mayúsculas/minúsculas."""
+        if not nombre:
+            return None
+        return (
+            db.query(Ingrediente)
+            .filter(func.lower(Ingrediente.nombre) == func.lower(nombre.strip()))
+            .first()
+        )
 
-    # leer todos
     def get_all_ingredientes(self, db: Session) -> List[Ingrediente]:
-        """[READ] Obtiene todos los ingredientes."""
+        """Lista los ingredientes ordenados por nombre."""
         return db.query(Ingrediente).order_by(Ingrediente.nombre).all()
 
-    # eliminar por nombre
-    def delete_ingrediente_by_name(self, db: Session, nombre: str) -> bool:
-        """[DELETE] Elimina un ingrediente por su nombre."""
-        # Usamos la función de lectura que ya tenemos
-        db_ingrediente = self.get_ingrediente_by_name(db, nombre)
-        if not db_ingrediente:
+    def get_ingredientes_with_filter(self, db: Session, filters: Dict[str, Any]) -> List[Ingrediente]:
+        """Permite filtrar dinámicamente usando atributos del modelo."""
+        query = db.query(Ingrediente)
+        for attr, value in filters.items():
+            if hasattr(Ingrediente, attr):
+                query = query.filter(getattr(Ingrediente, attr) == value)
+        return query.all()
+
+    def delete_ingrediente_by_id(self, db: Session, ingrediente_id: int) -> bool:
+        """Elimina un ingrediente existente."""
+        ingrediente = self.get_ingrediente_by_id(db, ingrediente_id)
+        if not ingrediente:
             return False
-        db.delete(db_ingrediente)
+        # Si el ingrediente está en recetas, se eliminarán las asociaciones
+        for asociacion in list(getattr(ingrediente, "menus_asociados", [])):
+            db.delete(asociacion)
+        db.delete(ingrediente)
         db.commit()
         return True
-        
-    # carga desde CSV
-    def load_from_csv(self, db: Session, df: pd.DataFrame) -> int:
-        """Carga datos desde un DataFrame (CSV) actualizando el stock."""
-        rows_processed = 0
-        for index, row in df.iterrows():
-            try:
-                nombre = str(row['nombre']).strip()
-                cantidad = float(row['cantidad'])
-                unidad = str(row.get('unidad', '')).strip() if 'unidad' in row and row['unidad'] else None
-                
-                if not nombre or cantidad <= 0:
-                    continue 
-                
-                # Reutiliza la lógica de CREATE/UPDATE
-                self.create_or_update_stock(db, nombre, unidad, cantidad)
-                rows_processed += 1
-            except Exception as e:
-                print(f"Error al procesar la fila {index+1} del CSV: {e}")
-        return rows_processed
 
+    def update_ingrediente(
+        self,
+        db: Session,
+        ingrediente_id: int,
+        nombre: Optional[str] = None,
+        unidad: Optional[str] = None,
+        cantidad_stock: Optional[float] = None,
+    ) -> Optional[Ingrediente]:
+        """Actualiza cualquier campo editable del ingrediente."""
+        ingrediente = self.get_ingrediente_by_id(db, ingrediente_id)
+        if not ingrediente:
+            return None
+
+        if nombre:
+            nombre_limpio = nombre.strip().title()
+            if not nombre_limpio:
+                raise ValueError("El nombre del ingrediente no puede estar vacío.")
+            ingrediente.nombre = nombre_limpio
+        if unidad is not None:
+            ingrediente.unidad = unidad
+        if cantidad_stock is not None:
+            if float(cantidad_stock) <= 0:
+                raise ValueError("El stock debe ser mayor que cero.")
+            ingrediente.cantidad_stock = cantidad_stock
+
+        try:
+            db.commit()
+            db.refresh(ingrediente)
+            return ingrediente
+        except IntegrityError:
+            db.rollback()
+            raise ValueError(f"Error de integridad: Ya existe un ingrediente con el nombre '{ingrediente.nombre}'.")
+
+    def load_ingredientes_from_csv(self, db: Session, file_path: str) -> List[Ingrediente]:
+        """Carga ingredientes desde un CSV usando pandas."""
+        df = pd.read_csv(file_path)
+        ingredientes_creados = []
+
+        for _, row in df.iterrows():
+            try:
+                cantidad = row.get("cantidad_stock", 0.0)
+                if cantidad is None or float(cantidad) <= 0:
+                    raise ValueError("La cantidad debe ser positiva.")
+                ingrediente = self.create_ingrediente(
+                    db,
+                    nombre=row["nombre"],
+                    unidad=row.get("unidad"),
+                    cantidad_stock=cantidad,
+                )
+                ingredientes_creados.append(ingrediente)
+            except ValueError as ve:
+                print(f"Error al crear ingrediente '{row['nombre']}': {ve}")
+            except Exception as e:
+                print(f"Error inesperado al crear ingrediente '{row['nombre']}': {e}")
+
+        return ingredientes_creados

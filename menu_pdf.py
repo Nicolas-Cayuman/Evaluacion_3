@@ -1,11 +1,21 @@
-# menu_pdf.py
-from fpdf import FPDF
-from typing import List
-from IMenu import IMenu
+"""menu_pdf.py
+
+Genera un PDF con la carta del restaurante a partir de una colección de
+menús en memoria. Se utiliza en la pestaña "Carta restaurante" para dar
+un resumen imprimible.
+"""
 import os
+from typing import List
+
+from fpdf import FPDF
+
+from IMenu import IMenu
+
 
 def _latin1(s: str) -> str:
+    """Normaliza strings para que FPDF no falle con tildes."""
     return s.encode("latin-1", "replace").decode("latin-1")
+
 
 def create_menu_pdf(
     menus: List[IMenu],
@@ -13,20 +23,17 @@ def create_menu_pdf(
     titulo_negocio: str = "Carta del Restaurante",
     subtitulo: str = "Menú del día",
     moneda: str = "$",
-
-    color_primario=(33, 150, 243),   
+    color_primario=(33, 150, 243),
     color_header_text=(255, 255, 255),
-    color_fila_par=(245, 247, 250),  
-    color_fila_impar=(255, 255, 255) 
+    color_fila_par=(245, 247, 250),
+    color_fila_impar=(255, 255, 255),
 ) -> str:
     """
-    Genera un PDF de la carta solo con Nombre y Precio, con estilo:
-    - Banner de título con color
-    - Encabezado de tabla coloreado
-    - Filas 'zebra'
-    - Precios alineados a la derecha
-    """
+    Genera un PDF en formato tabla usando estilos personalizados.
 
+    Usa alternancia de colores (filas zebra) y alinea los precios a la
+    derecha para que la lectura sea más amigable.
+    """
     margen = 12
     col_w_nombre = 120
     col_w_precio = 50
@@ -36,9 +43,8 @@ def create_menu_pdf(
     pdf.set_auto_page_break(auto=True, margin=margen)
     pdf.add_page()
 
-
     pdf.set_fill_color(*color_primario)
-    pdf.rect(0, 0, 210, 30, style="F")  
+    pdf.rect(0, 0, 210, 30, style="F")
     pdf.set_xy(margen, 8)
     pdf.set_font("Arial", "B", 18)
     pdf.set_text_color(*color_header_text)
@@ -46,16 +52,13 @@ def create_menu_pdf(
     pdf.set_font("Arial", "", 12)
     pdf.set_x(margen)
     pdf.cell(0, 8, _latin1(subtitulo), ln=True)
-
     pdf.ln(6)
 
-
     pdf.set_font("Arial", "B", 12)
-    pdf.set_fill_color(230, 236, 241)      
+    pdf.set_fill_color(230, 236, 241)
     pdf.set_text_color(0, 0, 0)
     pdf.cell(col_w_nombre, row_h, _latin1("Menú"), border=0, ln=0, align="L", fill=True)
     pdf.cell(col_w_precio, row_h, _latin1("Precio"), border=0, ln=1, align="R", fill=True)
-
 
     pdf.set_draw_color(220, 220, 220)
     x1 = margen
@@ -63,10 +66,8 @@ def create_menu_pdf(
     y = pdf.get_y()
     pdf.line(x1, y, x2, y)
 
-
     pdf.set_font("Arial", "", 12)
     for i, menu in enumerate(menus):
-
         is_par = (i % 2 == 0)
         bg = color_fila_par if is_par else color_fila_impar
         pdf.set_fill_color(*bg)
@@ -74,9 +75,7 @@ def create_menu_pdf(
         nombre = _latin1(menu.nombre)
         precio = f"{moneda}{menu.precio:,.0f}".replace(",", ".")
 
-
         pdf.cell(col_w_nombre, row_h, nombre, border=0, ln=0, align="L", fill=True)
-
         pdf.cell(col_w_precio, row_h, _latin1(precio), border=0, ln=1, align="R", fill=True)
 
     pdf.set_y(-18)
