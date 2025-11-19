@@ -1,4 +1,4 @@
-nombre,unidad,cantidad
+nombre,unidad,cantidad_stock
 Pan de completo,unid,30
 Carne,kg,36
 Lamina de queso,unid,24
@@ -14,3 +14,4 @@ Carne de vacuno,kg,29.6
 Masa de empanada,unid,120
 Pan de hamburguesa,unid,45
 Tomate,kg,6.8
+
