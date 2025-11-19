@@ -1,0 +1,354 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{amsmath, amssymb}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+\usepackage{minted}
+
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+
+\newcommand{\universidad}{Universidad Católica de Temuco}
+\newcommand{\facultad}{Facultad de Ingeniería}
+\newcommand{\carrera}{Ingeniería Civil en Informática}
+\newcommand{\asignatura}{Programación II}
+\newcommand{\evaluacion}{Evaluación 3: Sistema de Gestión de Restaurante con ORM}
+\newcommand{\equipo}{Gabriel Gutiérrez, Ailyn Melillán, Nicolás Cayumán}
+\newcommand{\fechaentrega}{Noviembre 2025}
+
+
+
+\title{\textbf{\evaluacion}}
+\author{\equipo}
+\date{\fechaentrega}
+
+\begin{document}
+
+\begin{titlepage}
+
+   
+    \begin{flushleft}
+        \includegraphics[width=0.4\textwidth]{images/logouct.png}
+    \end{flushleft}
+
+    \vspace{-1cm} 
+
+    \centering
+
+    {\Large \universidad \par}
+    \vspace{0.3cm}
+    {\large \facultad \par}
+    \vspace{0.3cm}
+    {\large \carrera \par}
+
+    \vspace{1.5cm}
+    {\LARGE\bfseries \evaluacion \par}
+
+    \vspace{1cm}
+    {\large Asignatura: \asignatura \par}
+    \vspace{0.5cm}
+    {\large Docente: Guido Mellado \par}
+    {\large Ayudantes: Fernando Valdés, Joaquín Cantero \par}
+
+    \vfill
+    {\large Integrantes:\par}
+    {\large \equipo \par}
+
+    \vfill
+    {\large \fechaentrega \par}
+
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+
+\section{Introducción}
+
+El presente documento expone el desarrollo del \textbf{Sistema de Gestión de Clientes, Pedidos, Menús e Ingredientes para un Restaurante}, correspondiente a la Evaluación 3.
+
+Este sistema representa un avance significativo respecto a la Evaluación 2, agregando:
+
+\begin{itemize}
+    \item Persistencia profesional mediante \textbf{SQLAlchemy ORM}.
+    \item Implementación completa de \textbf{CRUDs} modularizados.
+    \item Manejo de \textbf{relaciones complejas} entre entidades (1:N y N:N).
+    \item Interfaz gráfica profesional usando \textbf{CustomTkinter}.
+    \item Programación funcional: \texttt{lambda}, \texttt{map}, \texttt{filter}, \texttt{reduce}.
+    \item Generación de PDF: carta del menú y boleta del pedido.
+    \item Gráficos estadísticos integrados con Matplotlib.
+    \item Uso de patrones de diseño: \textbf{DTO} y \textbf{Facade}.
+\end{itemize}
+
+El objetivo del informe es describir detalladamente la arquitectura interna, el flujo del programa, las estructuras de datos, la interacción entre módulos y el cumplimiento de criterios de la pauta.
+
+
+\section{Comparación entre Evaluación 2 y Evaluación 3}
+
+
+\subsection{Mejoras más relevantes respecto a EV2}
+
+La Evaluación 3 constituye una reingeniería total del proyecto. Las mejoras más importantes son:
+
+\begin{itemize}
+    \item \textbf{Migración completa a ORM}: desde clases en memoria (EV2) hacia un sistema persistente con SQLAlchemy (EV3).
+    \item \textbf{Creación de CRUDs separados}: en EV2 toda la lógica estaba unida; en EV3 se modulariza según entidad.
+    \item \textbf{Implementación de DTOs}: permiten desacoplar la interfaz gráfica del ORM.
+    \item \textbf{Control real de stock}: se descuenta según recetas (N:N), no existía en EV2.
+    \item \textbf{Interfaz moderna y multipestaña}: EV2 tenía una GUI mínima.
+    \item \textbf{PDFs}: boleta y carta del restaurante.
+    \item \textbf{Gráficos estadísticos}: inexistentes en EV2.
+\end{itemize}
+
+\section{Estructura General del Proyecto}
+
+La estructura del proyecto es modular:
+
+\begin{itemize}
+    \item \textbf{app.py}: flujo principal del programa e interfaz gráfica.
+    \item \textbf{database.py}: inicialización del ORM y la base de datos.
+    \item \textbf{models.py}: modelos ORM (Cliente, Menú, Ingrediente, Pedido, Detalle, asociaciones).
+    \item Carpeta \textbf{crud/}:
+    \begin{itemize}
+        \item \texttt{cliente\_crud.py}
+        \item \texttt{crud\_pedido.py}
+        \item \texttt{crud\_detallepedido.py}
+        \item \texttt{ingrediente\_crud.py}
+        \item \texttt{menu\_crud.py}
+    \end{itemize}
+    \item \textbf{BoletaFacade.py}: encapsula el proceso completo de generación de boletas.
+    \item \textbf{ElementoMenu.py} y \textbf{Ingrediente.py}: DTOs.
+    \item \textbf{graficos.py}: extracción de datos y construcción de gráficos.
+\end{itemize}
+
+Cada módulo cumple una única responsabilidad, siguiendo los principios SOLID.
+
+\section{Modelo de Datos y ORM}
+
+\subsection{Diagrama MER}
+
+\begin{verbatim}
+erDiagram
+    CLIENTE ||--o{ PEDIDO : genera
+    PEDIDO ||--o{ DETALLE_PEDIDO : contiene
+    MENU ||--o{ DETALLE_PEDIDO : vendido
+    MENU ||--o{ MENU_INGREDIENTE : receta
+    INGREDIENTE ||--o{ MENU_INGREDIENTE : requerido
+\end{verbatim}
+
+\subsection{Definición de modelos ORM}
+
+Ejemplo de un modelo utilizado:
+
+\begin{minted}[fontsize=\small]{python}
+class MenuIngrediente(Base):
+    __tablename__ = "menu_ingredientes"
+
+    id = Column(Integer, primary_key=True)
+    menu_id = Column(Integer, ForeignKey("menus.id"))
+    ingrediente_id = Column(Integer, ForeignKey("ingredientes.id"))
+    cantidad_requerida = Column(Float)
+
+    menu = relationship("Menu", back_populates="ingredientes_asociados")
+    ingrediente = relationship("Ingrediente")
+\end{minted}
+
+Este diseño permite controlar el stock de cada menú de forma precisa.
+
+\section{CRUDs (Create, Read, Update, Delete)}
+
+\subsection{Ejemplo: CRUD de Menús}
+
+\begin{minted}[fontsize=\small]{python}
+def create_menu(self, db, nombre, precio, icono):
+    nuevo = Menu(nombre=nombre, precio=precio, icono=icono)
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
+    return nuevo
+\end{minted}
+
+\textbf{Aspectos importantes:}
+
+\begin{itemize}
+    \item \texttt{db.add() + db.commit()} permite persistir cambios.
+    \item \texttt{db.refresh()} obtiene valores actualizados del ORM.
+    \item Todas las operaciones CRUD están aisladas en un módulo específico.
+\end{itemize}
+
+% =============================================================
+\section{Interfaz Gráfica (CustomTkinter)}
+% =============================================================
+
+El archivo \texttt{app.py} organiza todas las vistas en formato de pestañas:
+
+\begin{minted}[fontsize=\small]{python}
+self.tabview.add("Pedido")
+self.tabview.add("Ingredientes")
+self.tabview.add("Menús")
+self.tabview.add("Clientes")
+self.tabview.add("Gráficos")
+self.tabview.add("Boleta")
+\end{minted}
+
+Cada pestaña interactúa con los CRUDs y DTOs.
+
+% =============================================================
+\section{Programación Funcional}
+% =============================================================
+
+\subsection{Uso de \texttt{map}}
+
+\begin{minted}[fontsize=\small]{python}
+nombres_clientes = list(map(
+    lambda c: f"{c.id} - {c.nombre}",
+    clientes
+))
+\end{minted}
+
+\subsection{Uso de \texttt{filter}}
+
+\begin{minted}[fontsize=\small]{python}
+menus_disponibles = list(filter(
+    lambda m: self.menu_crud.esta_disponible(self.db_session, m),
+    menus_db
+))
+\end{minted}
+
+\subsection{Uso de \texttt{reduce}}
+
+\begin{minted}[fontsize=\small]{python}
+total = reduce(
+    lambda subtotal, item: subtotal + item.precio * item.cantidad,
+    self.pedido.menus, 0.0
+)
+\end{minted}
+
+\subsection{Uso de \texttt{lambda} en eventos}
+
+\begin{minted}[fontsize=\small]{python}
+tarjeta.bind("<Enter>", lambda e: tarjeta.configure(border_color="red"))
+\end{minted}
+
+% =============================================================
+\section{Generación de Boleta (Patrón Facade)}
+% =============================================================
+
+\subsection{Arquitectura del Facade}
+
+\begin{minted}[fontsize=\small]{python}
+class BoletaFacade:
+    def procesar_pedido(self, pedido_dto):
+        pedido_orm = self.pedido_crud.crear_pedido(self.db, pedido_dto)
+        self.detalle_crud.crear_detalles(self.db, pedido_orm, pedido_dto)
+        self.actualizar_stock(pedido_orm)
+        return self.generar_pdf(pedido_orm)
+\end{minted}
+
+\textbf{Responsabilidades encapsuladas:}
+
+\begin{itemize}
+    \item Registrar el pedido.
+    \item Registrar detalles.
+    \item Descontar stock.
+    \item Generar boleta en PDF.
+\end{itemize}
+
+% =============================================================
+\section{Flujo Completo del Sistema}
+% =============================================================
+
+\textbf{1. Inicialización}
+
+\begin{minted}[fontsize=\small]{python}
+create_db_and_tables()
+self.db = SessionLocal()
+\end{minted}
+
+\textbf{2. Construcción de pestañas y DTOs}
+
+\begin{minted}[fontsize=\small]{python}
+self.pedido = Pedido()
+\end{minted}
+
+\textbf{3. Agregar menú al carrito}
+
+\begin{minted}[fontsize=\small]{python}
+self.pedido.menus.append(menu_dto)
+\end{minted}
+
+\textbf{4. Validación de stock}
+
+\begin{minted}[fontsize=\small]{python}
+if not self.menu_crud.esta_disponible(self.db, menu_orm):
+    return
+\end{minted}
+
+\textbf{5. Cálculo del total}
+
+\begin{minted}[fontsize=\small]{python}
+total = reduce(lambda t, m: t + m.precio*m.cantidad, self.pedido.menus, 0)
+\end{minted}
+
+\textbf{6. Persistencia del pedido vía Facade}
+
+\begin{minted}[fontsize=\small]{python}
+ruta_pdf = facade.procesar_pedido(self.pedido)
+\end{minted}
+
+\textbf{7. Visualización de la boleta en PDF}
+
+% =============================================================
+\section{Conclusiones}
+% =============================================================
+
+El sistema final cumple todos los requisitos establecidos por la pauta de la Evaluación 3, integrando:
+
+\begin{itemize}
+    \item Interfaz gráfica robusta.
+    \item ORM profesional con SQLAlchemy.
+    \item CRUDs completos y modularizados.
+    \item Programación funcional aplicada.
+    \item Flujo completo del proceso de compra.
+    \item Generación de PDFs.
+    \item Estadísticas gráficas.
+\end{itemize}
+
+El avance respecto a la Evaluación 2 es evidente tanto en arquitectura como en funcionalidad y calidad del código.
+
+\end{document}
+
+
+
+
+
+
+
