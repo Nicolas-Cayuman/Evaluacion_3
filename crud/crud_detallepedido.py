@@ -15,6 +15,9 @@ from models import (
     Ingrediente,
 )
 
+from models import DetallePedido
+from typing import List
+from schemas import DetallePedido
 
 class DetallePedidoCRUD:
     """Gestiona los registros hijo asociados a cada pedido."""

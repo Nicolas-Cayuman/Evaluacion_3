@@ -1,0 +1,231 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx} 
+
+
+\usetheme{Madrid}
+
+\includegraphics[width=0.4\textwidth]{images/logouct.png}
+
+
+\title{Delicias Temuco Restaurante}
+\author{
+Nicolás Cayumán, Gabriel Gutiérrez y Ailyn Melillán\\[4pt]
+\small Programación 2\\
+Profesor: Guido Mellado\\
+Ayudante: Joaquín Cantero\\
+Ingeniería Civil en Informática\\
+Universidad Católica de Temuco
+}
+\date{21/11/2025}
+
+\begin{document}
+
+% Portada
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Mejoras}
+    \textbf{Respecto a la anterior evaluación, realizamos las siguientes mejoras:}
+    \begin{itemize}
+        \item Migración total a ORM (SQLAlchemy).
+        \item Implementación de CRUD modulares por entidad.
+        \item Creación de DTOs para desacoplar UI y ORM.
+        \item Nuevas pestañas en la interfaz (9 módulos nuevos).
+        \item Uso de programación funcional (lambda, map, filter, reduce).
+        \item Control real de stock mediante recetas (N:N).
+        \item Implementación de PDF (carta y boleta).
+        \item Gráficos estadísticos con Matplotlib.
+        \item Carga masiva CSV y validaciones.
+    \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Diagrama de clases}
+    \begin{center}
+        \includegraphics[width=1\textwidth]{images/diagrama_de_clases.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Diagrama MER}
+    \begin{center}
+        \includegraphics[width=1\textwidth]{images/modelo_entidad_relacion.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{Solución propuesta}
+Se implementan cambios variados dentro de la aplicación en Python, que agrega más funciones para la gestión del restaurante:
+
+\begin{itemize}
+    
+    \item \textbf{Migración hacia ORM:} Se utilizan bases de datos para el manejo y registro de datos.
+    \item \textbf{Gestión de clientes:} Se registran clientes para mayor control de ventas.
+    \item \textbf{Generación automática de documentos:} boleta y carta en PDF con visualización integrada.
+    \item \textbf{Gráficos} se implementa el registro de las compras por dia semana mes y se generan graficos en relacion a esto para el control de ventas.
+    \item \textbf{Edición de Menú:}  Se permite desde la misma aplicación editar los menús del restaurante, permitiendo cambios de receta, precios, entre otros.
+\end{itemize}
+\end{frame}
+
+\section{Solución en Código y Flujo Principal}
+
+\begin{frame}{Flujo Principal del Sistema}
+El programa opera mediante una arquitectura basada en:
+\begin{itemize}
+    \item \textbf{ORM (SQLAlchemy)} para la persistencia.
+    \item \textbf{CRUDs modulares} para encapsular reglas de negocio.
+    \item \textbf{DTOs} para aislar la interfaz del modelo.
+    \item \textbf{CustomTkinter} para la interfaz multipestaña.
+\end{itemize}
+
+\bigskip
+A continuación se detalla el flujo completo de ejecución.
+\end{frame}
+
+\begin{frame}{1. Inicialización de la Aplicación}
+\textbf{app.py} es el punto de entrada del sistema:
+
+\begin{enumerate}
+    \item Se crean las tablas:
+    \begin{itemize}
+        \item \texttt{create\_db\_and\_tables()}
+    \end{itemize}
+
+    \item Se genera una sesión de base de datos:
+    \begin{itemize}
+        \item \texttt{self.db\_session = SessionLocal()}
+    \end{itemize}
+
+    \item Se inicializan los módulos CRUD:
+    \begin{itemize}
+        \item \texttt{IngredienteCRUD}, \texttt{MenuCRUD}, \texttt{ClienteCRUD}, \texttt{PedidoCRUD}
+    \end{itemize}
+
+    \item Se instancia el \textbf{Pedido (DTO)} que funcionará como carrito temporal.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{2. Construcción de la Interfaz Gráfica (UI)}
+Al llamar a \texttt{crear\_pestanas()} se generan las vistas:
+
+\begin{itemize}
+    \item \textbf{Stock}: registro y actualización de ingredientes.
+    \item \textbf{Carga CSV}: carga masiva mediante pandas.
+    \item \textbf{Gestión de Menús}: creación, edición y eliminación.
+    \item \textbf{Pedido}: selección de menús y validación de stock.
+    \item \textbf{Boleta}: generación de PDF (Facade).
+    \item \textbf{Carta}: PDF del catálogo de menús.
+    \item \textbf{Clientes}: registro y edición.
+    \item \textbf{Pedidos}: historial y control.
+    \item \textbf{Gráficos}: estadísticas en tiempo real.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{3. Construcción del Carrito y Lógica de Pedido}
+\begin{enumerate}
+    \item La UI muestra cada menú como una \textbf{tarjeta} (DTO \texttt{CrearMenu}).
+    \item El usuario agrega menús con un botón.
+    \item Cada selección:
+    \begin{itemize}
+        \item Valida stock disponible (\texttt{MenuCRUD.esta\_disponible}).
+        \item Aumenta \texttt{cantidad} en el DTO.
+        \item Se recalcula el total con \textbf{reduce + lambda}.
+    \end{itemize}
+    \item Se muestra una lista visual del pedido.
+\end{enumerate}
+
+\bigskip
+\textbf{Este proceso puede realizarse varias veces antes de confirmar.}
+\end{frame}
+
+\begin{frame}{4. Confirmación del Pedido}
+Cuando el usuario confirma:
+
+\begin{enumerate}
+    \item Se crea un \textbf{PedidoORM} en BD.
+    \item Por cada menú del carrito:
+    \begin{itemize}
+        \item Se inserta un \textbf{DetallePedidoORM}.
+        \item Se descuenta el stock según receta (N:N).
+    \end{itemize}
+    \item Se actualiza el historial de ventas.
+\end{enumerate}
+
+\bigskip
+\textbf{BoletaFacade} recibe el PedidoORM y genera un PDF con:
+\begin{itemize}
+    \item Cliente
+    \item Fecha
+    \item Ítems
+    \item Totales
+\end{itemize}
+\end{frame}
+
+\begin{frame}{5. Generación de PDF y Estadísticas}
+\textbf{BoletaFacade.py}:
+\begin{itemize}
+    \item Construye una estructura de datos para la boleta.
+    \item Renderiza el PDF.
+    \item Lo muestra con \texttt{CTkPDFViewer}.
+\end{itemize}
+
+\bigskip
+
+\textbf{graficos.py}:
+\begin{itemize}
+    \item Extrae datos desde la BD con ORM.
+    \item Genera gráficos de barras y torta en tiempo real.
+    \item Integra estos gráficos dentro de la interfaz.
+\end{itemize}
+\end{frame}
+
+
+\section{ORM y Programación Funcional}
+
+\begin{frame}{Uso del ORM (Ejemplos)}
+    \begin{itemize}
+        \item Modelo de datos profesional.
+        \item Relaciones entre entidades.
+        \item Consultas mediante SQLAlchemy.
+        \item Manejo de transacciones (commit/rollback).
+        \item Uso de tabla intermedia (MenuIngrediente).
+    \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Uso de Funciones Lambda y Funcionales}
+    \textbf{Incluido en EV3:}
+    \begin{itemize}
+        \item \texttt{map} para poblar combobox.
+        \item \texttt{filter} para filtrar menús disponibles.
+        \item \texttt{reduce} para calcular total del pedido.
+        \item \texttt{lambda} como funciones inline.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Ejemplos reales}
+\textbf{map + lambda:}
+\begin{minted}[fontsize=\scriptsize]{python}
+etiquetas = list(map(lambda c: f"{c.id} - {c.nombre}",
+                     clientes))
+\end{minted}
+
+\textbf{reduce:}
+\begin{minted}[fontsize=\scriptsize]{python}
+total = reduce(lambda t, m: t + m.precio*m.cantidad,
+               self.pedido.menus, 0)
+\end{minted}
+\end{frame}
+
+
+\begin{frame}{Presentación de la interfaz visual}
+    \begin{center}
+        \includegraphics[width=1\textwidth]{images/interfaz.png}
+    \end{center}
+\end{frame}
+
+
+\end{document}

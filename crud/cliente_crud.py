@@ -1,8 +1,3 @@
-"""cliente_crud.py
-
-Encapsula la lógica de acceso ORM para la tabla `clientes`. Mantiene la
-UI desacoplada de SQLAlchemy y centraliza validaciones comunes.
-"""
 from typing import List, Optional
 
 from sqlalchemy.exc import IntegrityError
