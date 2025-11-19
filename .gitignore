@@ -1,0 +1,16 @@
+# Directorios de entornos virtuales
+venv/
+env/
+
+# Archivos de Python generados
+Evaluacion_3/__pycache__/
+*.pyc
+*.pyo
+
+# Editor/IDE específicos (ejemplo)
+.vscode/
+.idea/
+
+# Archivos de registro y bases de datos locales
+*.log
+db.sqlite3

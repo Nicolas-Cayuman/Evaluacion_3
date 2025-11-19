@@ -1,43 +1,49 @@
-# menu_catalog.py
+"""Menu_catalog.py
+
+Catálogo estático usado para poblar la base de datos y para pruebas.
+Define los menús iniciales utilizando DTOs (`CrearMenu`) y dataclasses
+de ingredientes antes de que existan registros reales en la base.
+"""
 from typing import List
+
 from ElementoMenu import CrearMenu
 from Ingrediente import Ingrediente
 from IMenu import IMenu
 
+
 def get_default_menus() -> List[IMenu]:
+    """Retorna la lista de menús predefinidos con sus ingredientes base."""
     return [
         CrearMenu(
             "Completo",
             [
-                Ingrediente("Vienesa","unid", 1),
-                Ingrediente("Pan de completo","unid", 1),
-                Ingrediente("Palta","kg",0.5),
-                Ingrediente("Tomate","kg",0.2),
+                Ingrediente("Vienesa", "unid", 1),
+                Ingrediente("Pan de completo", "unid", 1),
+                Ingrediente("Palta", "kg", 0.5),
+                Ingrediente("Tomate", "kg", 0.2),
             ],
             precio=1800,
             icono_path="IMG/icono_hotdog_sin_texto_64x64.png",
-            
         ),
         CrearMenu(
             "Bepis",
             [
-                Ingrediente("Pepsi","unid",1)
+                Ingrediente("Pepsi", "unid", 1),
             ],
             precio=1200,
-            icono_path="IMG/icono_cola_64x64.png"
+            icono_path="IMG/icono_cola_64x64.png",
         ),
         CrearMenu(
             "Chorrillana",
             [
-                Ingrediente("Papas","kg",0.2),
-                Ingrediente("Carne de vacuno","kg",0.1),
-                Ingrediente("Huevos","unid",2),
-                Ingrediente("Cebolla","kg",0.05),
+                Ingrediente("Papas", "kg", 0.2),
+                Ingrediente("Carne de vacuno", "kg", 0.1),
+                Ingrediente("Huevos", "unid", 2),
+                Ingrediente("Cebolla", "kg", 0.05),
             ],
             precio=6500,
-            icono_path="IMG/icono_chorrillana_64x64.png"
+            icono_path="IMG/icono_chorrillana_64x64.png",
         ),
-
         CrearMenu(
             "Papas fritas",
             [
@@ -46,19 +52,14 @@ def get_default_menus() -> List[IMenu]:
             precio=500,
             icono_path="IMG/icono_papas_fritas_64x64.png",
         ),
-
-
         CrearMenu(
             "Coca-cola",
             [
-    
-                Ingrediente( "coca cola", "unid", "1"),
+                Ingrediente("coca cola", "unid", "1"),
             ],
-        precio=1200,
-        icono_path="IMG/icono_cola_lata_64x64.png"
-        
+            precio=1200,
+            icono_path="IMG/icono_cola_lata_64x64.png",
         ),
-
         CrearMenu(
             "Hamburguesa",
             [
@@ -69,14 +70,13 @@ def get_default_menus() -> List[IMenu]:
             precio=3500,
             icono_path="IMG/icono_hamburguesa_negra_64x64.png",
         ),
-
         CrearMenu(
             "empanada de queso",
             [
-                Ingrediente("masa de empanada","unid", 1),
-                Ingrediente("queso","unid", 1),
+                Ingrediente("masa de empanada", "unid", 1),
+                Ingrediente("queso", "unid", 1),
             ],
             precio=800,
             icono_path="IMG/icono_empanada_queso_64x64.png",
-        )
+        ),
     ]

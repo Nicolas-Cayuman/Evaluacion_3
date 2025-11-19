@@ -1,8 +1,19 @@
-# IMenu.py
+"""IMenu.py
+
+Protocolo estructural que describe los atributos mínimos que debe tener
+un menú dentro de la aplicación. Facilita el tipado y permite desacoplar
+los DTOs (`CrearMenu`) de los modelos ORM reales.
+"""
 from typing import Protocol, List, Optional
+
 from Ingrediente import Ingrediente
-from Stock import Stock
+
 
 class IMenu(Protocol):
-    """debes rellenar la Interfaz para los elementos del menú."""
-    pass
+    """Contrato básico para cualquier objeto que represente un menú."""
+
+    nombre: str
+    ingredientes: List[Ingrediente]
+    precio: float
+    icono_path: Optional[str]
+    cantidad: int
